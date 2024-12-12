@@ -177,145 +177,159 @@
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.js"></script>
 
   <script>
+  // Função que é chamada ao carregar a página
   window.onload = function() {
-  carregarDadosLocalStorage(); // Carregar os dados salvos
-  setInterval(atualizarContador, 1000); // Manter o contador atualizado
-};
+    carregarDadosLocalStorage(); // Carregar os dados salvos
+    setInterval(atualizarContador, 1000); // Manter o contador atualizado
+  };
+
+  // Função para carregar os dados salvos do LocalStorage
   function carregarDadosLocalStorage() {
-  const nome = localStorage.getItem('nome');
-  const mensagem = localStorage.getItem('mensagem');
-  const dataInicio = localStorage.getItem('dataInicio');
+    const nome = localStorage.getItem('nome');
+    const mensagem = localStorage.getItem('mensagem');
+    const dataInicio = localStorage.getItem('dataInicio');
 
-  if (nome) document.getElementById("nome").value = nome;
-  if (mensagem) document.getElementById("mensagemInput").value = mensagem;
-  if (dataInicio) document.getElementById("dataInicio").value = dataInicio;
+    // Preencher os campos do formulário com os dados carregados
+    if (nome) document.getElementById("nome").value = nome;
+    if (mensagem) document.getElementById("mensagemInput").value = mensagem;
+    if (dataInicio) document.getElementById("dataInicio").value = dataInicio;
 
-  // Carregar as imagens salvas
-  const imagensArray = JSON.parse(localStorage.getItem('imagens')) || [];
-  const gallery = document.getElementById("gallery");
-  gallery.innerHTML = "";
-  imagensArray.forEach(imgSrc => {
-    const img = document.createElement("img");
-    img.src = imgSrc;
-    gallery.appendChild(img);
-  });
+    // Carregar as imagens salvas
+    const imagensArray = JSON.parse(localStorage.getItem('imagens')) || [];
+    const gallery = document.getElementById("gallery");
+    gallery.innerHTML = "";  // Limpar a galeria
+    imagensArray.forEach(imgSrc => {
+      const img = document.createElement("img");
+      img.src = imgSrc;
+      gallery.appendChild(img);
+    });
 
-  // Carregar música
-  const musica = localStorage.getItem('musica');
-  if (musica) {
-    const audioSource = document.getElementById("audioSource");
-    audioSource.src = musica;
-    const audio = document.getElementById("audio");
-    audio.load();
-    audio.play();
+    // Carregar a música salva
+    const musica = localStorage.getItem('musica');
+    if (musica) {
+      const audioSource = document.getElementById("audioSource");
+      audioSource.src = musica;
+      const audio = document.getElementById("audio");
+      audio.load();
+      audio.play();
+    }
   }
-}
+
+  // Função para salvar os dados no LocalStorage
   function salvarDadosLocalStorage() {
-  const nome = document.getElementById("nome").value;
-  const mensagem = document.getElementById("mensagemInput").value;
-  const dataInicio = document.getElementById("dataInicio").value;
+    const nome = document.getElementById("nome").value;
+    const mensagem = document.getElementById("mensagemInput").value;
+    const dataInicio = document.getElementById("dataInicio").value;
 
-  // Salvar no LocalStorage
-  localStorage.setItem('nome', nome);
-  localStorage.setItem('mensagem', mensagem);
-  localStorage.setItem('dataInicio', dataInicio);
+    // Salvar no LocalStorage
+    localStorage.setItem('nome', nome);
+    localStorage.setItem('mensagem', mensagem);
+    localStorage.setItem('dataInicio', dataInicio);
 
-  // Salvar imagens (se necessário, você pode salvar a URL da imagem)
-  const imagens = document.getElementById("imagemInput").files;
-  const imagensArray = [];
-  for (let i = 0; i < imagens.length; i++) {
-    const reader = new FileReader();
-    reader.onload = function (e) {
-      imagensArray.push(e.target.result);
-      localStorage.setItem('imagens', JSON.stringify(imagensArray));
-    };
-    reader.readAsDataURL(imagens[i]);
-  }
-  
-  // Salvar música
-  const musicaArquivo = document.getElementById("musicaInput").files[0];
-  if (musicaArquivo) {
-    localStorage.setItem('musica', URL.createObjectURL(musicaArquivo));
-  }
-}
-    // Data de início padrão
-    let dataInicio = new Date("2024-12-12T00:00:00");
-
-    function atualizarContador() {
-      const agora = new Date();
-      const diferença = agora - dataInicio;
-
-      const anos = Math.floor(diferença / (1000 * 60 * 60 * 24 * 365.25));
-      const dias = Math.floor((diferença / (1000 * 60 * 60 * 24)) % 365.25);
-      const horas = Math.floor((diferença / (1000 * 60 * 60)) % 24);
-      const minutos = Math.floor((diferença / (1000 * 60)) % 60);
-      const segundos = Math.floor((diferença / 1000) % 60);
-
-      document.getElementById("contador").innerText =
-        `Juntos há: ${anos} anos, ${dias} dias, ${horas} horas, ${minutos} minutos e ${segundos} segundos`;
-    }
-
-    function gerarQRCode() {
-      const nome = document.getElementById("nome").value || "Junior & Kassiele";
-      const mensagem = document.getElementById("mensagemInput").value || "Te amo";
-      const dataInicioInput = document.getElementById("dataInicio").value || "2024-12-12";
-      
-      // Gerar URL única com as informações
-      const urlUnica = `https://www.seulink.com/pagina?nome=${encodeURIComponent(nome)}&mensagem=${encodeURIComponent(mensagem)}&dataInicio=${encodeURIComponent(dataInicioInput)}`;
-
-      // Gerar o QR Code
-      new QRCode(document.getElementById("qrCode"), urlUnica);
-    }
-
-    function atualizarPagina() {
-  // Atualizar o título com o nome do casal
-  const nome = document.getElementById("nome").value;
-  if (nome) {
-    document.getElementById("titulo").innerText = `❤️ ${nome} ❤️`;
-  }
-
-  // Atualizar a mensagem
-  const mensagem = document.getElementById("mensagemInput").value;
-  if (mensagem) {
-    document.getElementById("mensagem").innerText = mensagem;
-  }
-
-  // Atualizar a data de início
-  const novaData = document.getElementById("dataInicio").value;
-  if (novaData) {
-    dataInicio = new Date(novaData + "T00:00:00");
-  }
-
-  // Atualizar as imagens selecionadas
-  const gallery = document.getElementById("gallery");
-  gallery.innerHTML = "";
-  const imagens = document.getElementById("imagemInput").files;
-  if (imagens.length > 0) {
+    // Salvar imagens (se houver)
+    const imagens = document.getElementById("imagemInput").files;
+    const imagensArray = [];
     for (let i = 0; i < imagens.length; i++) {
       const reader = new FileReader();
       reader.onload = function (e) {
-        const img = document.createElement("img");
-        img.src = e.target.result;
-        gallery.appendChild(img);
+        imagensArray.push(e.target.result);
+        localStorage.setItem('imagens', JSON.stringify(imagensArray));
       };
       reader.readAsDataURL(imagens[i]);
     }
+    
+    // Salvar música
+    const musicaArquivo = document.getElementById("musicaInput").files[0];
+    if (musicaArquivo) {
+      localStorage.setItem('musica', URL.createObjectURL(musicaArquivo));
+    }
   }
 
-  // Atualizar a música selecionada
-  const musicaInput = document.getElementById("musicaInput");
-  const musicaArquivo = musicaInput.files[0];
-  if (musicaArquivo) {
-    const audioSource = document.getElementById("audioSource");
-    audioSource.src = URL.createObjectURL(musicaArquivo);
-    const audio = document.getElementById("audio");
-    audio.load();  // Carrega o novo arquivo
-    audio.play();  // Toca a música automaticamente
+  // Atualiza o contador de tempo desde a data de início
+  let dataInicio = new Date("2024-12-12T00:00:00");
+
+  function atualizarContador() {
+    const agora = new Date();
+    const diferença = agora - dataInicio;
+
+    const anos = Math.floor(diferença / (1000 * 60 * 60 * 24 * 365.25));
+    const dias = Math.floor((diferença / (1000 * 60 * 60 * 24)) % 365.25);
+    const horas = Math.floor((diferença / (1000 * 60 * 60)) % 24);
+    const minutos = Math.floor((diferença / (1000 * 60)) % 60);
+    const segundos = Math.floor((diferença / 1000) % 60);
+
+    document.getElementById("contador").innerText =
+      `Juntos há: ${anos} anos, ${dias} dias, ${horas} horas, ${minutos} minutos e ${segundos} segundos`;
   }
 
-  // Gerar o QR Code automaticamente com os dados inseridos
-  gerarQRCode();
-}
+  // Atualizar a página com os dados inseridos
+  function atualizarPagina() {
+    // Atualizar o título com o nome do casal
+    const nome = document.getElementById("nome").value;
+    if (nome) {
+      document.getElementById("titulo").innerText = `❤️ ${nome} ❤️`;
+    }
 
-    setInterval(atualizarContador, 1000);
-         </script>
+    // Atualizar a mensagem
+    const mensagem = document.getElementById("mensagemInput").value;
+    if (mensagem) {
+      document.getElementById("mensagem").innerText = mensagem;
+    }
+
+    // Atualizar a data de início
+    const novaData = document.getElementById("dataInicio").value;
+    if (novaData) {
+      dataInicio = new Date(novaData + "T00:00:00");
+    }
+
+    // Atualizar as imagens selecionadas
+    const gallery = document.getElementById("gallery");
+    gallery.innerHTML = "";
+    const imagens = document.getElementById("imagemInput").files;
+    if (imagens.length > 0) {
+      for (let i = 0; i < imagens.length; i++) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          const img = document.createElement("img");
+          img.src = e.target.result;
+          gallery.appendChild(img);
+        };
+        reader.readAsDataURL(imagens[i]);
+      }
+    }
+
+    // Atualizar a música selecionada
+    const musicaInput = document.getElementById("musicaInput");
+    const musicaArquivo = musicaInput.files[0];
+    if (musicaArquivo) {
+      const audioSource = document.getElementById("audioSource");
+      audioSource.src = URL.createObjectURL(musicaArquivo);
+      const audio = document.getElementById("audio");
+      audio.load();  // Carrega o novo arquivo
+      audio.play();  // Toca a música automaticamente
+    }
+
+    // Gerar o QR Code automaticamente com os dados inseridos
+    gerarQRCode();
+  }
+
+  // Gerar o QR Code com os dados do formulário
+  function gerarQRCode() {
+    const nome = document.getElementById("nome").value || "Junior & Kassiele";
+    const mensagem = document.getElementById("mensagemInput").value || "Te amo";
+    const dataInicioInput = document.getElementById("dataInicio").value || "2024-12-12";
+    
+    // Gerar URL única com as informações
+    const urlUnica = `https://www.seulink.com/pagina?nome=${encodeURIComponent(nome)}&mensagem=${encodeURIComponent(mensagem)}&dataInicio=${encodeURIComponent(dataInicioInput)}`;
+
+    // Gerar o QR Code
+    new QRCode(document.getElementById("qrCode"), urlUnica);
+  }
+
+  // Adicionar ouvintes de eventos para salvar automaticamente no localStorage
+  document.getElementById("nome").addEventListener("input", salvarDadosLocalStorage);
+  document.getElementById("mensagemInput").addEventListener("input", salvarDadosLocalStorage);
+  document.getElementById("dataInicio").addEventListener("input", salvarDadosLocalStorage);
+  document.getElementById("imagemInput").addEventListener("change", salvarDadosLocalStorage);
+  document.getElementById("musicaInput").addEventListener("change", salvarDadosLocalStorage);
+  </script>
