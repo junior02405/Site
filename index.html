@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Editar Página do Casal</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #181818; /* Fundo escuro */
+      color: #ffffff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      animation: fadeIn 1s ease-out;
+    }
+
+    .container {
+      max-width: 500px;
+      text-align: center;
+      background-color: #202020; /* Fundo do container */
+      padding: 20px;
+      margin-top: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+      animation: slideUp 0.5s ease-out;
+    }
+
+    h1 {
+      color: #ff5370; /* Vermelho vibrante */
+      animation: fadeIn 1s ease-out;
+    }
+
+    .imagem img {
+      width: 100%;
+      border-radius: 8px;
+      margin: 10px 0;
+      opacity: 0;
+      animation: fadeInImage 0.8s forwards;
+    }
+
+    .gallery {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 20px;
+      justify-content: center;
+      animation: fadeIn 1.5s ease-out;
+    }
+
+    .gallery img {
+      width: 100px;
+      height: auto;
+      border-radius: 8px;
+      opacity: 0;
+      animation: fadeInImage 0.8s forwards;
+    }
+
+    .form {
+      margin-top: 20px;
+      animation: fadeIn 2s ease-out;
+    }
+
+    .form input, .form textarea, .form button {
+      width: 100%;
+      margin: 10px 0;
+      padding: 10px;
+      border: none;
+      border-radius: 5px;
+      font-size: 1rem;
+    }
+
+    .form input, .form textarea {
+      background-color: #2a2a2a; /* Fundo escuro para os inputs */
+      color: #ffffff;
+    }
+
+    .form button {
+      background-color: #ff5370; /* Vermelho vibrante */
+      color: #ffffff;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .form button:hover {
+      background-color: #e1465d; /* Vermelho mais escuro */
+    }
+
+    /* Animações */
+    @keyframes fadeIn {
+      0% {
+        opacity: 0;
+      }
+      100% {
+        opacity: 1;
+      }
+    }
+
+    @keyframes fadeInImage {
+      0% {
+        opacity: 0;
+        transform: scale(0.8);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    @keyframes slideUp {
+      0% {
+        transform: translateY(20px);
+        opacity: 0;
+      }
+      100% {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    /* Estilo do contador */
+    #contador {
+      font-size: 1.5rem;
+      color: #ff5370; /* Vermelho vibrante */
+      font-weight: bold;
+      margin-bottom: 20px;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.6);
+      animation: fadeIn 1.5s ease-out;
+    }
+
+    /* Estilo da mensagem */
+    #mensagem {
+      font-size: 1.5rem;
+      color: #ffa6c9; /* Rosa claro */
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-weight: bold;
+      text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
+      animation: fadeIn 2s ease-out;
+    }
+
+    /* Estilo do QR Code */
+    #qrCode {
+      margin-top: 20px;
+      width: 150px;
+      height: 150px;
+    }
+  </style>
+</head>
+<body>
+  
+  <audio id="audio" autoplay>
+  <source id="audioSource" type="audio/mp3">
+  Seu navegador não suporta a reprodução de áudio.
+</audio>
+  
+  <div class="container">
+    <h1 id="titulo">❤️ Junior & Kassiele ❤️</h1>
+    <div id="contador">Carregando contador...</div>
+    <div id="mensagem">Te amo</div>
+    <div class="gallery" id="gallery"></div>
+
+    <!-- QR Code -->
+    <div id="qrCode"></div>
+
+    <form class="form">
+      <input type="text" id="nome" placeholder="Digite o nome do casal (Ex: Junior & Kassiele)" />
+      <textarea id="mensagemInput" placeholder="Digite sua mensagem de amor (Ex: Te amo)"></textarea>
+      <input type="date" id="dataInicio" />
+      <input type="file" id="imagemInput" accept="image/*" multiple />
+      <input type="file" id="musicaInput" accept="audio/*" />
+      <button type="button" onclick="atualizarPagina()">Atualizar Página</button>
+    </form>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.js"></script>
+
+  <script>
+    // Data de início padrão
+    let dataInicio = new Date("2024-12-12T00:00:00");
+
+    function atualizarContador() {
+      const agora = new Date();
+      const diferença = agora - dataInicio;
+
+      const anos = Math.floor(diferença / (1000 * 60 * 60 * 24 * 365.25));
+      const dias = Math.floor((diferença / (1000 * 60 * 60 * 24)) % 365.25);
+      const horas = Math.floor((diferença / (1000 * 60 * 60)) % 24);
+      const minutos = Math.floor((diferença / (1000 * 60)) % 60);
+      const segundos = Math.floor((diferença / 1000) % 60);
+
+      document.getElementById("contador").innerText =
+        `Juntos há: ${anos} anos, ${dias} dias, ${horas} horas, ${minutos} minutos e ${segundos} segundos`;
+    }
+
+    function gerarQRCode() {
+      const nome = document.getElementById("nome").value || "Junior & Kassiele";
+      const mensagem = document.getElementById("mensagemInput").value || "Te amo";
+      const dataInicioInput = document.getElementById("dataInicio").value || "2024-12-12";
+      
+      // Gerar URL única com as informações
+      const urlUnica = `https://www.seulink.com/pagina?nome=${encodeURIComponent(nome)}&mensagem=${encodeURIComponent(mensagem)}&dataInicio=${encodeURIComponent(dataInicioInput)}`;
+
+      // Gerar o QR Code
+      new QRCode(document.getElementById("qrCode"), urlUnica);
+    }
+
+    function atualizarPagina() {
+  // Atualizar o título com o nome do casal
+  const nome = document.getElementById("nome").value;
+  if (nome) {
+    document.getElementById("titulo").innerText = `❤️ ${nome} ❤️`;
+  }
+
+  // Atualizar a mensagem
+  const mensagem = document.getElementById("mensagemInput").value;
+  if (mensagem) {
+    document.getElementById("mensagem").innerText = mensagem;
+  }
+
+  // Atualizar a data de início
+  const novaData = document.getElementById("dataInicio").value;
+  if (novaData) {
+    dataInicio = new Date(novaData + "T00:00:00");
+  }
+
+  // Atualizar as imagens selecionadas
+  const gallery = document.getElementById("gallery");
+  gallery.innerHTML = "";
+  const imagens = document.getElementById("imagemInput").files;
+  if (imagens.length > 0) {
+    for (let i = 0; i < imagens.length; i++) {
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const img = document.createElement("img");
+        img.src = e.target.result;
+        gallery.appendChild(img);
+      };
+      reader.readAsDataURL(imagens[i]);
+    }
+  }
+
+  // Atualizar a música selecionada
+  const musicaInput = document.getElementById("musicaInput");
+  const musicaArquivo = musicaInput.files[0];
+  if (musicaArquivo) {
+    const audioSource = document.getElementById("audioSource");
+    audioSource.src = URL.createObjectURL(musicaArquivo);
+    const audio = document.getElementById("audio");
+    audio.load();  // Carrega o novo arquivo
+    audio.play();  // Toca a música automaticamente
+  }
+
+  // Gerar o QR Code automaticamente com os dados inseridos
+  gerarQRCode();
+}
+
+    setInterval(atualizarContador, 1000);
+  </script>
