@@ -177,6 +177,67 @@
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.js"></script>
 
   <script>
+  window.onload = function() {
+  carregarDadosLocalStorage(); // Carregar os dados salvos
+  setInterval(atualizarContador, 1000); // Manter o contador atualizado
+};
+  function carregarDadosLocalStorage() {
+  const nome = localStorage.getItem('nome');
+  const mensagem = localStorage.getItem('mensagem');
+  const dataInicio = localStorage.getItem('dataInicio');
+
+  if (nome) document.getElementById("nome").value = nome;
+  if (mensagem) document.getElementById("mensagemInput").value = mensagem;
+  if (dataInicio) document.getElementById("dataInicio").value = dataInicio;
+
+  // Carregar as imagens salvas
+  const imagensArray = JSON.parse(localStorage.getItem('imagens')) || [];
+  const gallery = document.getElementById("gallery");
+  gallery.innerHTML = "";
+  imagensArray.forEach(imgSrc => {
+    const img = document.createElement("img");
+    img.src = imgSrc;
+    gallery.appendChild(img);
+  });
+
+  // Carregar música
+  const musica = localStorage.getItem('musica');
+  if (musica) {
+    const audioSource = document.getElementById("audioSource");
+    audioSource.src = musica;
+    const audio = document.getElementById("audio");
+    audio.load();
+    audio.play();
+  }
+}
+  function salvarDadosLocalStorage() {
+  const nome = document.getElementById("nome").value;
+  const mensagem = document.getElementById("mensagemInput").value;
+  const dataInicio = document.getElementById("dataInicio").value;
+
+  // Salvar no LocalStorage
+  localStorage.setItem('nome', nome);
+  localStorage.setItem('mensagem', mensagem);
+  localStorage.setItem('dataInicio', dataInicio);
+
+  // Salvar imagens (se necessário, você pode salvar a URL da imagem)
+  const imagens = document.getElementById("imagemInput").files;
+  const imagensArray = [];
+  for (let i = 0; i < imagens.length; i++) {
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      imagensArray.push(e.target.result);
+      localStorage.setItem('imagens', JSON.stringify(imagensArray));
+    };
+    reader.readAsDataURL(imagens[i]);
+  }
+  
+  // Salvar música
+  const musicaArquivo = document.getElementById("musicaInput").files[0];
+  if (musicaArquivo) {
+    localStorage.setItem('musica', URL.createObjectURL(musicaArquivo));
+  }
+}
     // Data de início padrão
     let dataInicio = new Date("2024-12-12T00:00:00");
 
@@ -257,4 +318,4 @@
 }
 
     setInterval(atualizarContador, 1000);
-  </script>
+         </script>
