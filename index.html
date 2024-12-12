@@ -211,7 +211,7 @@
       audioSource.src = musica;
       const audio = document.getElementById("audio");
       audio.load();
-      audio.play();
+      audio.play(); // Reproduzir a música automaticamente ao carregar
     }
   }
 
@@ -237,7 +237,7 @@
       };
       reader.readAsDataURL(imagens[i]);
     }
-    
+
     // Salvar música
     const musicaArquivo = document.getElementById("musicaInput").files[0];
     if (musicaArquivo) {
@@ -332,4 +332,4 @@
   document.getElementById("dataInicio").addEventListener("input", salvarDadosLocalStorage);
   document.getElementById("imagemInput").addEventListener("change", salvarDadosLocalStorage);
   document.getElementById("musicaInput").addEventListener("change", salvarDadosLocalStorage);
-  </script>
+      </script>
