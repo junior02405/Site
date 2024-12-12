@@ -280,8 +280,8 @@
   const novaData = document.getElementById("dataInicio").value;
   let dataInicio = novaData ? new Date(novaData + "T00:00:00") : new Date("2024-12-12T00:00:00");
 
-  // Gerar o link único
-  const urlUnica = `https://www.seulink.com/pagina?nome=${encodeURIComponent(nome)}&mensagem=${encodeURIComponent(mensagem)}&dataInicio=${encodeURIComponent(novaData)}`;
+  // Gerar o link único com seu domínio
+  const urlUnica = `https://junior02405.github.io/Site/?nome=${encodeURIComponent(nome)}&mensagem=${encodeURIComponent(mensagem)}&dataInicio=${encodeURIComponent(novaData)}`;
   
   // Exibir o link gerado
   const linkElement = document.getElementById("linkPagina");
