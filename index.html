@@ -1,335 +1,191 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Editar Página do Casal</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-      background-color: #181818; /* Fundo escuro */
-      color: #ffffff;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      animation: fadeIn 1s ease-out;
-    }
+#! /usr/bin/env python3
+# Instagram Scraper
+# Coded by sc1341 
+# http://github.com/sc1341/InstagramOSINT
+# I am not responsible for anything you do with this script
+# This is mean to be imported as a python module for use in custom applications
+#
+#
 
-    .container {
-      max-width: 500px;
-      text-align: center;
-      background-color: #202020; /* Fundo do container */
-      padding: 20px;
-      margin-top: 20px;
-      border-radius: 10px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
-      animation: slideUp 0.5s ease-out;
-    }
+from bs4 import BeautifulSoup
+import json
+import os
+import requests
+import random
+import string
+import sys
+import time
 
-    h1 {
-      color: #ff5370; /* Vermelho vibrante */
-      animation: fadeIn 1s ease-out;
-    }
 
-    .imagem img {
-      width: 100%;
-      border-radius: 8px;
-      margin: 10px 0;
-      opacity: 0;
-      animation: fadeInImage 0.8s forwards;
-    }
+class colors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
 
-    .gallery {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 20px;
-      justify-content: center;
-      animation: fadeIn 1.5s ease-out;
-    }
 
-    .gallery img {
-      width: 100px;
-      height: auto;
-      border-radius: 8px;
-      opacity: 0;
-      animation: fadeInImage 0.8s forwards;
-    }
+class InstagramOSINT:
 
-    .form {
-      margin-top: 20px;
-      animation: fadeIn 2s ease-out;
-    }
+    def __init__(self, username):
+        self.username = username
+        self.useragents = ['Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36',
+                 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36',
+                 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36',
+                 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_1) AppleWebKit/602.2.14 (KHTML, like Gecko) Version/10.0.1 Safari/602.2.14',
+                 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.71 Safari/537.36',
+                 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.98 Safari/537.36',
+                 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.98 Safari/537.36',
+                 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.71 Safari/537.36',
+                 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36',
+                 'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:50.0) Gecko/20100101 Firefox/50.0']
 
-    .form input, .form textarea, .form button {
-      width: 100%;
-      margin: 10px 0;
-      padding: 10px;
-      border: none;
-      border-radius: 5px;
-      font-size: 1rem;
-    }
+        self.scrape_profile()
 
-    .form input, .form textarea {
-      background-color: #2a2a2a; /* Fundo escuro para os inputs */
-      color: #ffffff;
-    }
 
-    .form button {
-      background-color: #ff5370; /* Vermelho vibrante */
-      color: #ffffff;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
-    }
+    def __repr__(self):
+        return f"Current Username: {self.username}"
 
-    .form button:hover {
-      background-color: #e1465d; /* Vermelho mais escuro */
-    }
+    def __str__(self):
+        return f"Current Username: {self.username}"
 
-    /* Animações */
-    @keyframes fadeIn {
-      0% {
-        opacity: 0;
-      }
-      100% {
-        opacity: 1;
-      }
-    }
+    def __getitem__(self, i):
+        return self.profile_data[i]
 
-    @keyframes fadeInImage {
-      0% {
-        opacity: 0;
-        transform: scale(0.8);
-      }
-      100% {
-        opacity: 1;
-        transform: scale(1);
-      }
-    }
 
-    @keyframes slideUp {
-      0% {
-        transform: translateY(20px);
-        opacity: 0;
-      }
-      100% {
-        transform: translateY(0);
-        opacity: 1;
-      }
-    }
+    def scrape_profile(self):
+        """
+        This is the main scrape which takes the profile data retrieved and saves it into profile_data
+        :params: None
+        :return: profile data
+        """
+        # Get the html data with the requests module
+        r = requests.get(f'http://instagram.com/{self.username}', headers={'User-Agent': random.choice(self.useragents)})
+        soup = BeautifulSoup(r.text, 'html.parser')
+        # Find the tags that hold the data we want to parse
+        general_data = soup.find_all('meta', attrs={'property': 'og:description'})
+        more_data = soup.find_all('script', attrs={'type': 'text/javascript'})
+        description = soup.find('script', attrs={'type': 'application/ld+json'})
+        # Try to parse the content -- if it fails then the program exits
+        try:
+            text = general_data[0].get('content').split()
+            self.description = json.loads(description.get_text())
+            self.profile_meta = json.loads(more_data[3].get_text()[21:].strip(';'))
 
-    /* Estilo do contador */
-    #contador {
-      font-size: 1.5rem;
-      color: #ff5370; /* Vermelho vibrante */
-      font-weight: bold;
-      margin-bottom: 20px;
-      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.6);
-      animation: fadeIn 1.5s ease-out;
-    }
+        except:
+            print(colors.FAIL + f"Username {username} not found" + colors.ENDC)
+            return 1
+        self.profile_data = {"Username": self.profile_meta['entry_data']['ProfilePage'][0]['graphql']['user']['username'],
+                             "Profile name": self.description['name'],
+                             "URL": self.description['mainEntityofPage']['@id'],
+                             "Followers": text[0], "Following": text[2], "Posts": text[4],
+                             "Bio": str(
+                                 self.profile_meta['entry_data']['ProfilePage'][0]['graphql']['user']['biography']),
+                             "profile_pic_url": str(self.profile_meta['entry_data']['ProfilePage'][0]['graphql']['user'][
+                                                        'profile_pic_url_hd']),
+                             "is_business_account": str(
+                                 self.profile_meta['entry_data']['ProfilePage'][0]['graphql']['user'][
+                                     'is_business_account']),
+                             "connected_to_fb": str(self.profile_meta['entry_data']['ProfilePage'][0]['graphql']['user'][
+                                                        'connected_fb_page']),
+                             "externalurl": str(
+                                 self.profile_meta['entry_data']['ProfilePage'][0]['graphql']['user']['external_url']),
+                             "joined_recently": str(self.profile_meta['entry_data']['ProfilePage'][0]['graphql']['user'][
+                                                        'is_joined_recently']),
+                             "business_category_name": str(
+                                 self.profile_meta['entry_data']['ProfilePage'][0]['graphql']['user'][
+                                     'business_category_name']),
+                             "is_private": str(
+                                 self.profile_meta['entry_data']['ProfilePage'][0]['graphql']['user']['is_private']),
+                             "is_verified": str(
+                                 self.profile_meta['entry_data']['ProfilePage'][0]['graphql']['user']['is_verified'])}
 
-    /* Estilo da mensagem */
-    #mensagem {
-      font-size: 1.5rem;
-      color: #ffa6c9; /* Rosa claro */
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      font-weight: bold;
-      text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
-      animation: fadeIn 2s ease-out;
-    }
+        return self.profile_data
 
-    /* Estilo do QR Code */
-    #qrCode {
-      margin-top: 20px;
-      width: 150px;
-      height: 150px;
-    }
-  </style>
-</head>
-<body>
-  
-  <audio id="audio" autoplay>
-  <source id="audioSource" type="audio/mp3">
-  Seu navegador não suporta a reprodução de áudio.
-</audio>
-  
-  <div class="container">
-    <h1 id="titulo">❤️ Junior & Kassiele ❤️</h1>
-    <div id="contador">Carregando contador...</div>
-    <div id="mensagem">Te amo</div>
-    <div class="gallery" id="gallery"></div>
 
-    <!-- QR Code -->
-    <div id="qrCode"></div>
+    def scrape_posts(self):
+        """Scrapes all posts and downloads them
+        :return: none
+        :param: none
+        """
+        if self.profile_data['is_private'].lower() == 'true':
+            print("[*]Private profile, cannot scrape photos!")
+            return 1
+        else:
+            posts = {}
+            for index, post in enumerate(self.profile_meta['entry_data']['ProfilePage'][0]['graphql']['user']['edge_owner_to_timeline_media']['edges']):
+                os.mkdir(str(index))
+                posts[index] = {"Caption": str(post['node']['edge_media_to_caption']['edges'][0]['node']['text']),
+                                "Number of Comments": str(post['node']['edge_media_to_comment']['count']),
+                                "Comments Disabled": str(post['node']['comments_disabled']),
+                                "Taken At Timestamp": str(post['node']['taken_at_timestamp']),
+                                "Number of Likes": str(post['node']['edge_liked_by']['count']),
+                                "Location": str(post['node']['location']),
+                                "Accessability Caption": str(post['node']['accessibility_caption'])
+                                }
 
-    <form class="form">
-      <input type="text" id="nome" placeholder="Digite o nome do casal (Ex: Junior & Kassiele)" />
-      <textarea id="mensagemInput" placeholder="Digite sua mensagem de amor (Ex: Te amo)"></textarea>
-      <input type="date" id="dataInicio" />
-      <input type="file" id="imagemInput" accept="image/*" multiple />
-      <input type="file" id="musicaInput" accept="audio/*" />
-      <button type="button" onclick="atualizarPagina()">Atualizar Página</button>
-    </form>
-  </div>
+                # Downloads the thumbnails of the post
+                # Picture is just an int index of the url in the list
+                with open(f'{os.getcwd()}/{index}/' + ''.join([random.choice(string.ascii_uppercase) for x in range(random.randint(1, 9))]) + '.jpg', 'wb') as f:
+                    # Delay the request times randomly (be nice to Instagram)
+                    time.sleep(random.randint(5, 10))
+                    r = requests.get(post['node']['thumbnail_resources'][0]['src'], headers={'User-Agent':random.choice(self.useragents)})
+                    # Takes the content of r and puts it into the file
+                    f.write(r.content)
 
-  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.js"></script>
+            with open('posts.txt', 'w') as f:
+                f.write(json.dumps(posts))
 
-  <script>
-  // Função que é chamada ao carregar a página
-  window.onload = function() {
-    carregarDadosLocalStorage(); // Carregar os dados salvos
-    setInterval(atualizarContador, 1000); // Manter o contador atualizado
-  };
+    def make_directory(self):
+        """Makes the profile directory and changes the cwd to it
+        this should only be called from the save_data function!
+        :return: True
+        """
+        try:
+            os.mkdir(self.username)
+            os.chdir(self.username)
+        except FileExistsError:
+            num = 0
+            while os.path.exists(self.username):
+                num += 1
+                try:
+                    os.mkdir(self.username + str(num))
+                    os.chdir(self.username + str(num))
+                except FileExistsError:
+                    pass
 
-  // Função para carregar os dados salvos do LocalStorage
-  function carregarDadosLocalStorage() {
-    const nome = localStorage.getItem('nome');
-    const mensagem = localStorage.getItem('mensagem');
-    const dataInicio = localStorage.getItem('dataInicio');
+    def save_data(self):
+        """Saves the data to the username directory
+        :return: none
+        :param: none
+        """
+        self.make_directory()
+        with open('data.txt', 'w') as f:
+            f.write(json.dumps(self.profile_data))
+        # Downloads the profile Picture
+        self.download_profile_picture()
+        print(f"Saved data to directory {os.getcwd()}")
 
-    // Preencher os campos do formulário com os dados carregados
-    if (nome) document.getElementById("nome").value = nome;
-    if (mensagem) document.getElementById("mensagemInput").value = mensagem;
-    if (dataInicio) document.getElementById("dataInicio").value = dataInicio;
+    def print_profile_data(self):
+        """Prints out the data to the screen by iterating through the dict with it's key and value
+        :return: none
+        :param: none
+        """
+        # Print the data out to the user
+        print(colors.HEADER + "---------------------------------------------" + colors.ENDC)
+        print(colors.OKGREEN + f"Results: scan for {self.profile_data['Username']} on instagram" + colors.ENDC)
+        for key, value in self.profile_data.items():
+            print(key + ':' + value)
 
-    // Carregar as imagens salvas
-    const imagensArray = JSON.parse(localStorage.getItem('imagens')) || [];
-    const gallery = document.getElementById("gallery");
-    gallery.innerHTML = "";  // Limpar a galeria
-    imagensArray.forEach(imgSrc => {
-      const img = document.createElement("img");
-      img.src = imgSrc;
-      gallery.appendChild(img);
-    });
-
-    // Carregar a música salva
-    const musica = localStorage.getItem('musica');
-    if (musica) {
-      const audioSource = document.getElementById("audioSource");
-      audioSource.src = musica;
-      const audio = document.getElementById("audio");
-      audio.load();
-      audio.play(); // Reproduzir a música automaticamente ao carregar
-    }
-  }
-
-  // Função para salvar os dados no LocalStorage
-  function salvarDadosLocalStorage() {
-    const nome = document.getElementById("nome").value;
-    const mensagem = document.getElementById("mensagemInput").value;
-    const dataInicio = document.getElementById("dataInicio").value;
-
-    // Salvar no LocalStorage
-    localStorage.setItem('nome', nome);
-    localStorage.setItem('mensagem', mensagem);
-    localStorage.setItem('dataInicio', dataInicio);
-
-    // Salvar imagens (se houver)
-    const imagens = document.getElementById("imagemInput").files;
-    const imagensArray = [];
-    for (let i = 0; i < imagens.length; i++) {
-      const reader = new FileReader();
-      reader.onload = function (e) {
-        imagensArray.push(e.target.result);
-        localStorage.setItem('imagens', JSON.stringify(imagensArray));
-      };
-      reader.readAsDataURL(imagens[i]);
-    }
-
-    // Salvar música
-    const musicaArquivo = document.getElementById("musicaInput").files[0];
-    if (musicaArquivo) {
-      localStorage.setItem('musica', URL.createObjectURL(musicaArquivo));
-    }
-  }
-
-  // Atualiza o contador de tempo desde a data de início
-  let dataInicio = new Date("2024-12-12T00:00:00");
-
-  function atualizarContador() {
-    const agora = new Date();
-    const diferença = agora - dataInicio;
-
-    const anos = Math.floor(diferença / (1000 * 60 * 60 * 24 * 365.25));
-    const dias = Math.floor((diferença / (1000 * 60 * 60 * 24)) % 365.25);
-    const horas = Math.floor((diferença / (1000 * 60 * 60)) % 24);
-    const minutos = Math.floor((diferença / (1000 * 60)) % 60);
-    const segundos = Math.floor((diferença / 1000) % 60);
-
-    document.getElementById("contador").innerText =
-      `Juntos há: ${anos} anos, ${dias} dias, ${horas} horas, ${minutos} minutos e ${segundos} segundos`;
-  }
-
-  // Atualizar a página com os dados inseridos
-  function atualizarPagina() {
-    // Atualizar o título com o nome do casal
-    const nome = document.getElementById("nome").value;
-    if (nome) {
-      document.getElementById("titulo").innerText = `❤️ ${nome} ❤️`;
-    }
-
-    // Atualizar a mensagem
-    const mensagem = document.getElementById("mensagemInput").value;
-    if (mensagem) {
-      document.getElementById("mensagem").innerText = mensagem;
-    }
-
-    // Atualizar a data de início
-    const novaData = document.getElementById("dataInicio").value;
-    if (novaData) {
-      dataInicio = new Date(novaData + "T00:00:00");
-    }
-
-    // Atualizar as imagens selecionadas
-    const gallery = document.getElementById("gallery");
-    gallery.innerHTML = "";
-    const imagens = document.getElementById("imagemInput").files;
-    if (imagens.length > 0) {
-      for (let i = 0; i < imagens.length; i++) {
-        const reader = new FileReader();
-        reader.onload = function (e) {
-          const img = document.createElement("img");
-          img.src = e.target.result;
-          gallery.appendChild(img);
-        };
-        reader.readAsDataURL(imagens[i]);
-      }
-    }
-
-    // Atualizar a música selecionada
-    const musicaInput = document.getElementById("musicaInput");
-    const musicaArquivo = musicaInput.files[0];
-    if (musicaArquivo) {
-      const audioSource = document.getElementById("audioSource");
-      audioSource.src = URL.createObjectURL(musicaArquivo);
-      const audio = document.getElementById("audio");
-      audio.load();  // Carrega o novo arquivo
-      audio.play();  // Toca a música automaticamente
-    }
-
-    // Gerar o QR Code automaticamente com os dados inseridos
-    gerarQRCode();
-  }
-
-  // Gerar o QR Code com os dados do formulário
-  function gerarQRCode() {
-    const nome = document.getElementById("nome").value || "Junior & Kassiele";
-    const mensagem = document.getElementById("mensagemInput").value || "Te amo";
-    const dataInicioInput = document.getElementById("dataInicio").value || "2024-12-12";
-    
-    // Gerar URL única com as informações
-    const urlUnica = `https://www.seulink.com/pagina?nome=${encodeURIComponent(nome)}&mensagem=${encodeURIComponent(mensagem)}&dataInicio=${encodeURIComponent(dataInicioInput)}`;
-
-    // Gerar o QR Code
-    new QRCode(document.getElementById("qrCode"), urlUnica);
-  }
-
-  // Adicionar ouvintes de eventos para salvar automaticamente no localStorage
-  document.getElementById("nome").addEventListener("input", salvarDadosLocalStorage);
-  document.getElementById("mensagemInput").addEventListener("input", salvarDadosLocalStorage);
-  document.getElementById("dataInicio").addEventListener("input", salvarDadosLocalStorage);
-  document.getElementById("imagemInput").addEventListener("change", salvarDadosLocalStorage);
-  document.getElementById("musicaInput").addEventListener("change", salvarDadosLocalStorage);
-                          </script>
+    def download_profile_picture(self):
+        """Downloads the profile pic and saves it to the directory
+        :return: none
+        :param: none
+        """
+        with open("profile_pic.jpg", "wb") as f:
+            time.sleep(1)
+            r = requests.get(self.profile_data['profile_pic_url'], headers={'User-Agent':random.choice(self.useragents)})
+            f.write(r.content)
